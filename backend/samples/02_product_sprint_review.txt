@@ -1,0 +1,23 @@
+Meera (PM): Morning all. Quick sprint review and then planning for the next sprint.
+Arjun (Backend): The payment API integration is done and deployed to staging. Testing took longer than expected because of the refund flow.
+Meera: Good. Is it ready for production?
+Arjun: Almost. QA still needs to run the full regression on staging.
+Divya (QA): I can start the regression tomorrow and finish it by Thursday.
+Meera: Perfect. If regression passes, we release on Monday. Agreed?
+Arjun: Agreed.
+Divya: Yes.
+Meera: Okay, Monday release is decided. Next, the login bug customers keep reporting on Android.
+Vikram (Mobile): I checked it. It only happens on Android 12 when the app comes back from the background. I'll fix the session refresh logic by Wednesday.
+Meera: Great. Also, the dashboard is loading really slowly for big accounts.
+Arjun: Yeah, we should probably add caching or something.
+Meera: Let's have someone do a proper performance analysis first before we change anything.
+Vikram: Not me this sprint, I'm full.
+Meera: Okay, we'll figure out who later. It needs to be done this sprint though.
+Divya: One more thing. We don't have test data for the new invoice feature.
+Meera: Arjun, can you generate the test data for invoices?
+Arjun: Yes, I'll do it sometime next week.
+Meera: Also, we decided last time to move from weekly to bi-weekly client updates. That's confirmed now, starting next month.
+Meera: Last point. Should we migrate the database to the new cluster this quarter? There are risks.
+Arjun: I'd want to see a cost estimate before saying yes.
+Meera: Fair. Arjun, prepare the cost estimate and we'll take the call in the next review.
+Meera: That's all. Thanks team.

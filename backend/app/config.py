@@ -1,0 +1,23 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Any OpenAI-compatible provider works here (Gemini, Groq, OpenAI).
+# Defaults point to Google Gemini's free tier.
+LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+LLM_BASE_URL = os.getenv(
+    "LLM_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/"
+)
+LLM_MODEL = os.getenv("LLM_MODEL", "gemini-3.8-flash")
+LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.2"))
+
+# How much the model "thinks" before answering: low / medium / high.
+# Leave it empty if your model does not support it.
+LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "").strip()
+
+# Give up after this many seconds instead of waiting forever
+LLM_TIMEOUT = float(os.getenv("LLM_TIMEOUT", "60"))
+
+DATA_FILE = os.getenv("DATA_FILE", os.path.join(os.path.dirname(__file__), "..", "data", "meetings.json"))
+FRONTEND_ORIGINS = os.getenv("FRONTEND_ORIGINS", "http://localhost:5173").split(",")

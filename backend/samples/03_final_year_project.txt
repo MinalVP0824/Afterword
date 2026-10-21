@@ -1,0 +1,20 @@
+Prof. Shetty: Let's go through the progress of your project. Where are you with the literature survey?
+Nikhil: Sir, we've read about 15 papers. We still need to write the summary table.
+Prof. Shetty: That needs to be submitted with the review report. Who is writing it?
+Nikhil: I'll write the literature survey table, sir. I can finish it by 5th November.
+Prof. Shetty: Okay. What about the dataset?
+Aisha: We found two datasets on Kaggle. One has 10,000 images and the other has around 3,000, but the second one has better labels.
+Prof. Shetty: Use the larger one for training and the smaller one for testing. That way you also check generalisation.
+Aisha: Okay sir, we'll go with that.
+Prof. Shetty: Good. And the model?
+Tejas: We trained a basic CNN. Accuracy is 78 percent. We were thinking of trying transfer learning with ResNet.
+Prof. Shetty: Yes, try ResNet50 and compare. Tejas, you handle that. Show me the comparison in the next review.
+Tejas: Yes sir.
+Prof. Shetty: When is the next review?
+Nikhil: The department said it's on 12th November.
+Prof. Shetty: Then the comparison should be ready before that. Also, your report formatting was wrong last time. Fix the stuff I pointed out.
+Aisha: Sir, should we also build a web interface for the demo?
+Prof. Shetty: It would be nice but it's optional. Focus on the model first. If you have time, do it.
+Prof. Shetty: Also someone should check whether we can publish this in a conference. Look at the IEEE conferences coming up.
+Nikhil: Okay sir.
+Prof. Shetty: Fine. See you next week.
