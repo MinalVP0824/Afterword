@@ -1,11 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, Menu } from "lucide-react";
-import { api } from "./api";
+import { api, session } from "./api";
 import Sidebar from "./components/Sidebar";
 import NewMeeting from "./components/NewMeeting";
 import MeetingView from "./components/MeetingView";
+import Landing from "./components/Landing";
+import Auth from "./components/Auth";
+
+const GITHUB_URL = "https://github.com/MinalVP0824/afterword";
 
 export default function App() {
+  const [view, setView] = useState("landing"); // "landing", "auth" or "app"
+  const [user, setUser] = useState(null);
+  const [checkingSession, setCheckingSession] = useState(true);
+
   const [meetings, setMeetings] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [meeting, setMeeting] = useState(null);
@@ -13,13 +21,60 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [error, setError] = useState("");
 
+  const resetMeetings = useCallback(() => {
+    setMeetings([]);
+    setSelectedId(null);
+    setMeeting(null);
+    setError("");
+  }, []);
+
+  // If the backend rejects the token (expired or invalid), send the user to log in
+  useEffect(() => {
+    session.onUnauthorized(() => {
+      setUser(null);
+      resetMeetings();
+      setView("auth");
+    });
+  }, [resetMeetings]);
+
+  // On page load, check if a saved token is still valid
+  useEffect(() => {
+    if (!session.getToken()) {
+      setCheckingSession(false);
+      return;
+    }
+    api
+      .me()
+      .then(setUser)
+      .catch(() => session.clear())
+      .finally(() => setCheckingSession(false));
+  }, []);
+
   const refreshList = useCallback(() => {
     api.listMeetings().then(setMeetings).catch((e) => setError(e.message));
   }, []);
 
   useEffect(() => {
-    refreshList();
-  }, [refreshList]);
+    if (user) refreshList();
+  }, [user, refreshList]);
+
+  function openApp() {
+    setView(user ? "app" : "auth");
+  }
+
+  function handleAuthed(loggedInUser) {
+    resetMeetings();
+    setUser(loggedInUser);
+    setView("app");
+  }
+
+  function logout() {
+    session.clear();
+    setUser(null);
+    resetMeetings();
+    setSidebarOpen(false);
+    setView("landing");
+  }
 
   async function openMeeting(id) {
     setSidebarOpen(false);
@@ -66,14 +121,33 @@ export default function App() {
     refreshList();
   }
 
+  if (view === "landing") {
+    return <Landing onStart={openApp} githubUrl={GITHUB_URL} />;
+  }
+
+  if (checkingSession) {
+    return (
+      <div className="flex h-screen items-center justify-center text-muted">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
+  }
+
+  if (view === "auth" || !user) {
+    return <Auth onAuthed={handleAuthed} onBack={() => setView("landing")} />;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden print:block print:h-auto print:overflow-visible">
       <div className="contents print:hidden">
         <Sidebar
+          user={user}
           meetings={meetings}
           selectedId={selectedId}
           onSelect={openMeeting}
           onNew={startNew}
+          onHome={() => setView("landing")}
+          onLogout={logout}
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />

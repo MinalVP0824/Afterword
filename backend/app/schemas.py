@@ -43,6 +43,7 @@ class ResolvedFollowUp(BaseModel):
 
 class MeetingResult(BaseModel):
     id: str
+    user_id: Optional[str] = None           # the account this meeting belongs to
     title: str
     meeting_date: str
     created_at: str
@@ -86,3 +87,27 @@ class TaskUpdate(BaseModel):
     owner: Optional[str] = None
     deadline: Optional[str] = None
     priority: Optional[Literal["high", "medium", "low"]] = None
+
+
+# ---------------------------------------------------------------- Accounts
+
+class SignupRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=60)
+    email: str = Field(min_length=5, max_length=120)
+    password: str = Field(min_length=6, max_length=128)
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class UserOut(BaseModel):
+    id: str
+    name: str
+    email: str
+
+
+class AuthResponse(BaseModel):
+    token: str
+    user: UserOut

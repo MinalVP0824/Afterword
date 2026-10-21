@@ -36,24 +36,42 @@ def save_meeting(meeting: MeetingResult) -> None:
         _save(data)
 
 
-def get_meeting(meeting_id: str) -> Optional[MeetingResult]:
+def get_meeting(meeting_id: str, user_id: str) -> Optional[MeetingResult]:
+    """Returns the meeting only if it belongs to this user."""
     with _lock:
         item = _load().get(meeting_id)
-    return MeetingResult(**item) if item else None
+    if not item or item.get("user_id") != user_id:
+        return None
+    return MeetingResult(**item)
 
 
-def list_meetings() -> List[MeetingResult]:
+def list_meetings(user_id: str) -> List[MeetingResult]:
     with _lock:
         data = _load()
-    meetings = [MeetingResult(**m) for m in data.values()]
+    meetings = [MeetingResult(**m) for m in data.values() if m.get("user_id") == user_id]
     return sorted(meetings, key=lambda m: m.created_at, reverse=True)
 
 
-def delete_meeting(meeting_id: str) -> bool:
+def delete_meeting(meeting_id: str, user_id: str) -> bool:
     with _lock:
         data = _load()
-        if meeting_id not in data:
+        item = data.get(meeting_id)
+        if not item or item.get("user_id") != user_id:
             return False
         del data[meeting_id]
         _save(data)
         return True
+
+
+def claim_unowned_meetings(user_id: str) -> int:
+    """Meetings saved before login existed have no owner. Give them to the first account."""
+    with _lock:
+        data = _load()
+        count = 0
+        for item in data.values():
+            if not item.get("user_id"):
+                item["user_id"] = user_id
+                count += 1
+        if count:
+            _save(data)
+        return count

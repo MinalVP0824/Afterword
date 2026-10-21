@@ -4,3 +4,4 @@ openai>=1.40
 python-dotenv>=1.0
 dateparser>=1.2
 pydantic>=2.6
+pyjwt>=2.8

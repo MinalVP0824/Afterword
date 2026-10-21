@@ -1,7 +1,7 @@
-import { CheckCircle2, MessageCircleQuestion, Plus, X } from "lucide-react";
-import { formatDate } from "../utils";
+import { CheckCircle2, LogOut, MessageCircleQuestion, Plus, X } from "lucide-react";
+import { formatDate, initials } from "../utils";
 
-export default function Sidebar({ meetings, selectedId, onSelect, onNew, open, onClose }) {
+export default function Sidebar({ user, meetings, selectedId, onSelect, onNew, onHome, onLogout, open, onClose }) {
   return (
     <>
       {/* dark overlay on mobile when the sidebar is open */}
@@ -16,10 +16,10 @@ export default function Sidebar({ meetings, selectedId, onSelect, onNew, open, o
         }`}
       >
         <div className="flex items-start justify-between px-6 pt-7 pb-6">
-          <div>
+          <button onClick={onHome} title="Back to the home page" className="text-left">
             <h1 className="font-display text-3xl italic tracking-tight">Afterword</h1>
             <p className="mt-1 text-xs text-muted">Meetings, made into action.</p>
-          </div>
+          </button>
           <button onClick={onClose} className="rounded-md p-1 text-muted hover:bg-line/60 lg:hidden">
             <X size={18} />
           </button>
@@ -70,6 +70,25 @@ export default function Sidebar({ meetings, selectedId, onSelect, onNew, open, o
             );
           })}
         </nav>
+
+        {user && (
+          <div className="flex items-center gap-3 border-t border-line px-4 py-4">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-paper">
+              {initials(user.name)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{user.name}</p>
+              <p className="truncate text-xs text-muted">{user.email}</p>
+            </div>
+            <button
+              onClick={onLogout}
+              title="Log out"
+              className="rounded-md p-2 text-muted hover:bg-line/60 hover:text-ink"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        )}
       </aside>
     </>
   );

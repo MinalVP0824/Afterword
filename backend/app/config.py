@@ -21,3 +21,8 @@ LLM_TIMEOUT = float(os.getenv("LLM_TIMEOUT", "60"))
 
 DATA_FILE = os.getenv("DATA_FILE", os.path.join(os.path.dirname(__file__), "..", "data", "meetings.json"))
 FRONTEND_ORIGINS = os.getenv("FRONTEND_ORIGINS", "http://localhost:5173").split(",")
+
+# Login tokens. Change JWT_SECRET to any long random string in .env
+JWT_SECRET = os.getenv("JWT_SECRET", "afterword-dev-secret-please-change-this-in-the-env-file")
+JWT_EXPIRE_HOURS = int(os.getenv("JWT_EXPIRE_HOURS", "72"))
+USERS_FILE = os.getenv("USERS_FILE", os.path.join(os.path.dirname(__file__), "..", "data", "users.json"))
