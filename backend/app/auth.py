@@ -20,8 +20,10 @@ from typing import Dict, Optional
 import jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pymongo.errors import DuplicateKeyError
 
 from . import config
+from .db import get_db
 from .schemas import UserOut
 
 _lock = threading.Lock()
@@ -48,6 +50,7 @@ def verify_password(password: str, stored: str) -> bool:
 
 
 # ---------------------------------------------------------------- user storage
+# MongoDB when MONGODB_URI is set (deployed), otherwise a local JSON file.
 
 def _load() -> Dict[str, dict]:
     if not os.path.exists(config.USERS_FILE):
@@ -71,30 +74,44 @@ def _public(user: dict) -> UserOut:
     return UserOut(id=user["id"], name=user["name"], email=user["email"])
 
 
+def _find_by_email(email: str) -> Optional[dict]:
+    db = get_db()
+    if db is not None:
+        return db.users.find_one({"email": email})
+    with _lock:
+        return next((u for u in _load().values() if u["email"] == email), None)
+
+
 def create_user(name: str, email: str, password: str) -> UserOut:
     email = email.strip().lower()
     if not EMAIL_RE.match(email):
         raise HTTPException(status_code=400, detail="Please enter a valid email address.")
-    with _lock:
-        users = _load()
-        if any(u["email"] == email for u in users.values()):
+    if _find_by_email(email):
+        raise HTTPException(status_code=409, detail="An account with this email already exists.")
+
+    user = {
+        "id": f"usr_{uuid.uuid4().hex[:10]}",
+        "name": name.strip(),
+        "email": email,
+        "password_hash": hash_password(password),
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+    }
+    db = get_db()
+    if db is not None:
+        try:
+            db.users.insert_one({**user, "_id": user["id"]})
+        except DuplicateKeyError:
             raise HTTPException(status_code=409, detail="An account with this email already exists.")
-        user = {
-            "id": f"usr_{uuid.uuid4().hex[:10]}",
-            "name": name.strip(),
-            "email": email,
-            "password_hash": hash_password(password),
-            "created_at": datetime.now().isoformat(timespec="seconds"),
-        }
-        users[user["id"]] = user
-        _save(users)
+    else:
+        with _lock:
+            users = _load()
+            users[user["id"]] = user
+            _save(users)
     return _public(user)
 
 
 def authenticate(email: str, password: str) -> UserOut:
-    email = email.strip().lower()
-    with _lock:
-        user = next((u for u in _load().values() if u["email"] == email), None)
+    user = _find_by_email(email.strip().lower())
     # same message either way, so nobody can find out which emails have accounts
     if not user or not verify_password(password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Wrong email or password.")
@@ -102,12 +119,19 @@ def authenticate(email: str, password: str) -> UserOut:
 
 
 def get_user(user_id: str) -> Optional[UserOut]:
-    with _lock:
-        user = _load().get(user_id)
+    db = get_db()
+    if db is not None:
+        user = db.users.find_one({"_id": user_id})
+    else:
+        with _lock:
+            user = _load().get(user_id)
     return _public(user) if user else None
 
 
 def user_count() -> int:
+    db = get_db()
+    if db is not None:
+        return db.users.count_documents({})
     with _lock:
         return len(_load())
 

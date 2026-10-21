@@ -26,3 +26,8 @@ FRONTEND_ORIGINS = os.getenv("FRONTEND_ORIGINS", "http://localhost:5173").split(
 JWT_SECRET = os.getenv("JWT_SECRET", "afterword-dev-secret-please-change-this-in-the-env-file")
 JWT_EXPIRE_HOURS = int(os.getenv("JWT_EXPIRE_HOURS", "72"))
 USERS_FILE = os.getenv("USERS_FILE", os.path.join(os.path.dirname(__file__), "..", "data", "users.json"))
+
+# Database. Leave MONGODB_URI empty to use local JSON files (fine on your laptop).
+# Set it when deploying, because hosts like Render wipe local files on restart.
+MONGODB_URI = os.getenv("MONGODB_URI", "").strip()
+MONGODB_DB = os.getenv("MONGODB_DB", "afterword")
