@@ -20,7 +20,14 @@ LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "").strip()
 LLM_TIMEOUT = float(os.getenv("LLM_TIMEOUT", "60"))
 
 DATA_FILE = os.getenv("DATA_FILE", os.path.join(os.path.dirname(__file__), "..", "data", "meetings.json"))
-FRONTEND_ORIGINS = os.getenv("FRONTEND_ORIGINS", "http://localhost:5173").split(",")
+
+# Websites allowed to call this API, separated by commas.
+# Spaces and trailing slashes are cleaned up so small typos don't break login.
+FRONTEND_ORIGINS = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv("FRONTEND_ORIGINS", "http://localhost:5173").split(",")
+    if origin.strip()
+]
 
 # Login tokens. Change JWT_SECRET to any long random string in .env
 JWT_SECRET = os.getenv("JWT_SECRET", "afterword-dev-secret-please-change-this-in-the-env-file")
