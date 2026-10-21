@@ -6,7 +6,7 @@ Afterword is an agentic AI assistant that reads a meeting transcript and turns i
 
 Built for the Agentic AI course project, problem statement **M1-P2: AI-Powered Meeting-to-Action Assistant**.
 
-![Home screen](screenshots/home.png)
+![Afterword landing page](screenshots/landing.png)
 
 ## Features
 
@@ -17,6 +17,7 @@ Built for the Agentic AI course project, problem statement **M1-P2: AI-Powered M
 - Converts spoken deadlines like "by Friday" or "end of the month" into real dates
 - Automatically marks follow-up points as resolved once the new information settles them
 - Edit any task by hand
+- Accounts with sign up and log in, so each user only sees their own meetings
 - Meeting history saved between sessions
 - Export as Markdown or a clean PDF report
 
@@ -32,9 +33,16 @@ Afterword runs a five-step loop:
 4. **Update:** answers are applied and every task is checked again. A vague answer such as "whenever possible" gets rejected and the question is asked again.
 5. **Reflect:** the LLM looks at what changed and decides which follow-up points are now settled. It only returns the index numbers of resolved items, so it cannot rewrite or invent follow-ups.
 
-Meetings and the full question and answer history are stored in a JSON file, which acts as the agent's long-term memory.
+Meetings and the full question and answer history are stored per user, which acts as the agent's long-term memory.
 
 ![Resolved follow-ups](screenshots/followups.png)
+
+## Security
+
+- Passwords are never stored. Only a salted PBKDF2-SHA256 hash is saved.
+- Logging in returns a signed JWT token, which is checked on every meeting request.
+- A user can only read, edit or delete their own meetings.
+- Wrong email and wrong password return the same message, so account emails cannot be discovered.
 
 ## Tech stack
 
@@ -42,9 +50,10 @@ Meetings and the full question and answer history are stored in a JSON file, whi
 |---|---|
 | Backend | Python, FastAPI, Pydantic |
 | LLM | Groq (`openai/gpt-oss-120b`) through the OpenAI-compatible API. Gemini and OpenAI also work by changing `.env` |
+| Auth | PBKDF2 password hashing, JWT tokens (PyJWT) |
 | Date parsing | dateparser plus custom rules |
 | Frontend | React, Vite, Tailwind CSS, Lucide icons |
-| Storage | JSON file |
+| Storage | JSON files |
 
 ## Project structure
 
@@ -54,10 +63,11 @@ afterword/
 │   ├── app/
 │   │   ├── main.py        API endpoints
 │   │   ├── agent.py       the five-step agent loop
+│   │   ├── auth.py        accounts, password hashing, JWT tokens
 │   │   ├── prompts.py     system prompts
 │   │   ├── llm.py         LLM client with timeout and JSON retry
 │   │   ├── schemas.py     data models
-│   │   ├── storage.py     saves meetings
+│   │   ├── storage.py     saves meetings per user
 │   │   └── config.py      settings from .env
 │   ├── samples/           three example transcripts
 │   ├── list_models.py     lists models available to your API key
@@ -65,9 +75,9 @@ afterword/
 └── frontend/
     └── src/
         ├── App.jsx
-        ├── api.js
+        ├── api.js         API calls and login token
         ├── export.js      Markdown export
-        └── components/    Sidebar, NewMeeting, MeetingView, TaskCard, ClarifyPanel
+        └── components/    Landing, Auth, Sidebar, NewMeeting, MeetingView, TaskCard, ClarifyPanel
 ```
 
 ## Running it locally
@@ -82,6 +92,12 @@ venv\Scripts\activate            # Windows
 pip install -r requirements.txt
 ```
 
+Generate a secret key for login tokens:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
 Create a file called `.env` inside `backend`:
 
 ```
@@ -90,6 +106,8 @@ LLM_BASE_URL=https://api.groq.com/openai/v1
 LLM_MODEL=openai/gpt-oss-120b
 LLM_REASONING_EFFORT=low
 LLM_TIMEOUT=60
+JWT_SECRET=the_random_string_you_generated
+JWT_EXPIRE_HOURS=72
 FRONTEND_ORIGINS=http://localhost:5173
 ```
 
@@ -109,19 +127,22 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+Open http://localhost:5173, click **Open app** and create an account.
 
 ## API
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| POST | `/api/analyze` | Analyse a transcript |
-| GET | `/api/meetings` | List saved meetings |
-| GET | `/api/meetings/{id}` | Get one meeting |
-| POST | `/api/meetings/{id}/clarify` | Answer the agent's questions |
-| PATCH | `/api/meetings/{id}/tasks/{task_id}` | Edit a task |
-| DELETE | `/api/meetings/{id}` | Delete a meeting |
-| GET | `/api/samples` | Sample transcripts |
+| Method | Endpoint | Purpose | Login |
+|---|---|---|---|
+| POST | `/api/auth/signup` | Create an account | No |
+| POST | `/api/auth/login` | Log in, returns a token | No |
+| GET | `/api/auth/me` | Current user | Yes |
+| POST | `/api/analyze` | Analyse a transcript | Yes |
+| GET | `/api/meetings` | List your meetings | Yes |
+| GET | `/api/meetings/{id}` | Get one meeting | Yes |
+| POST | `/api/meetings/{id}/clarify` | Answer the agent's questions | Yes |
+| PATCH | `/api/meetings/{id}/tasks/{task_id}` | Edit a task | Yes |
+| DELETE | `/api/meetings/{id}` | Delete a meeting | Yes |
+| GET | `/api/samples` | Sample transcripts | No |
 
 Interactive API docs are at http://localhost:8000/docs while the backend is running.
 
