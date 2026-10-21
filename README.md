@@ -2,6 +2,8 @@
 
 **Meetings, made into action.**
 
+**Live demo:** https://afterword-nine.vercel.app
+
 Afterword is an agentic AI assistant that reads a meeting transcript and turns it into a clear summary, the decisions that were made, tasks with owners and deadlines, and follow-up points. When something in the meeting was left vague, like a task with no owner or a deadline of "soon", Afterword notices it and asks you to clarify before marking the task as ready.
 
 Built for the Agentic AI course project, problem statement **M1-P2: AI-Powered Meeting-to-Action Assistant**.
@@ -51,9 +53,10 @@ Meetings and the full question and answer history are stored per user, which act
 | Backend | Python, FastAPI, Pydantic |
 | LLM | Groq (`openai/gpt-oss-120b`) through the OpenAI-compatible API. Gemini and OpenAI also work by changing `.env` |
 | Auth | PBKDF2 password hashing, JWT tokens (PyJWT) |
+| Database | MongoDB Atlas when deployed, local JSON files for development |
 | Date parsing | dateparser plus custom rules |
 | Frontend | React, Vite, Tailwind CSS, Lucide icons |
-| Storage | JSON files |
+| Hosting | Vercel (frontend), Render (backend) |
 
 ## Project structure
 
@@ -64,12 +67,13 @@ afterword/
 │   │   ├── main.py        API endpoints
 │   │   ├── agent.py       the five-step agent loop
 │   │   ├── auth.py        accounts, password hashing, JWT tokens
+│   │   ├── db.py          MongoDB connection
 │   │   ├── prompts.py     system prompts
 │   │   ├── llm.py         LLM client with timeout and JSON retry
 │   │   ├── schemas.py     data models
 │   │   ├── storage.py     saves meetings per user
 │   │   └── config.py      settings from .env
-│   ├── samples/           three example transcripts
+│   ├── samples/           example transcripts
 │   ├── list_models.py     lists models available to your API key
 │   └── requirements.txt
 └── frontend/
@@ -109,6 +113,8 @@ LLM_TIMEOUT=60
 JWT_SECRET=the_random_string_you_generated
 JWT_EXPIRE_HOURS=72
 FRONTEND_ORIGINS=http://localhost:5173
+# Optional: use MongoDB instead of local JSON files
+# MONGODB_URI=your_mongodb_atlas_connection_string
 ```
 
 A free Groq key is available at https://console.groq.com. Then start the server:
